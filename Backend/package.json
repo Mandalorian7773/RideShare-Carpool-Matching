@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "start": "ts-node src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,6 +16,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.10.1",
     "@types/socket.io": "^3.0.1",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
   },
@@ -22,6 +24,7 @@
     "@fastify/cors": "^11.1.0",
     "@fastify/jwt": "^10.0.0",
     "@prisma/client": "^6.19.0",
+    "@supabase/supabase-js": "^2.84.0",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
     "prisma": "^6.19.0",
