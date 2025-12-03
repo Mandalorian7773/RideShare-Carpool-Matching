@@ -12,6 +12,9 @@ class RideService {
     async searchRides(searchParams) {
         return this.repository.searchRides(searchParams);
     }
+    async nearbyRideSearch(searchParams) {
+        return this.repository.nearbyRideSearch(searchParams);
+    }
     async requestSeat(rideId, riderId) {
         return this.repository.requestSeat(rideId, riderId);
     }

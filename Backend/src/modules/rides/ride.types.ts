@@ -72,6 +72,12 @@ export interface GeoSearchRequest {
   timeWindow: number;
 }
 
+export interface NearbyRideSearchRequest {
+  lat: number;
+  lng: number;
+  radius: number;
+}
+
 export interface GeoSearchResponse {
   rides: Array<{
     ride: Ride;

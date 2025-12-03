@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { Ride, SeatRequest, Message, Rating, CreateRideRequest, GeoSearchRequest } from './ride.types';
+import { Ride, SeatRequest, Message, Rating, CreateRideRequest, GeoSearchRequest, NearbyRideSearchRequest } from './ride.types';
 export declare class RideService {
     private repository;
     constructor(fastify: FastifyInstance);
@@ -8,6 +8,7 @@ export declare class RideService {
         ride: Ride;
         distance: number;
     }>>;
+    nearbyRideSearch(searchParams: NearbyRideSearchRequest): Promise<any[]>;
     requestSeat(rideId: number, riderId: number): Promise<SeatRequest>;
     approveSeat(seatRequestId: number): Promise<{
         seatRequest: SeatRequest;

@@ -6,7 +6,8 @@ import {
   RequestSeatRequest,
   ApproveSeatRequest,
   ChatMessageRequest,
-  AddRatingRequest
+  AddRatingRequest,
+  NearbyRideSearchRequest
 } from './ride.types';
 
 interface UserPayload {
@@ -69,6 +70,22 @@ export class RideController {
       return reply.status(500).send({
         success: false,
         error: error.message || 'Failed to search rides'
+      });
+    }
+  }
+
+  async nearbyRideSearch(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const searchParams = request.body as NearbyRideSearchRequest;
+      const results = await this.service.nearbyRideSearch(searchParams);
+      return reply.status(200).send({
+        success: true,
+        data: results
+      });
+    } catch (error: any) {
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to search nearby rides'
       });
     }
   }

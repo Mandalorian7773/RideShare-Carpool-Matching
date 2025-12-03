@@ -50,6 +50,22 @@ class RideController {
             });
         }
     }
+    async nearbyRideSearch(request, reply) {
+        try {
+            const searchParams = request.body;
+            const results = await this.service.nearbyRideSearch(searchParams);
+            return reply.status(200).send({
+                success: true,
+                data: results
+            });
+        }
+        catch (error) {
+            return reply.status(500).send({
+                success: false,
+                error: error.message || 'Failed to search nearby rides'
+            });
+        }
+    }
     async requestSeat(request, reply) {
         try {
             if (!request.user) {

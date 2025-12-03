@@ -1,10 +1,11 @@
 import { FastifyInstance } from 'fastify';
-import { Ride, SeatRequest, Message, Rating, CreateRideRequest, GeoSearchRequest, User } from './ride.types';
+import { Ride, SeatRequest, Message, Rating, CreateRideRequest, GeoSearchRequest, User, NearbyRideSearchRequest } from './ride.types';
 export declare class RideRepository {
     private db;
     constructor(db: FastifyInstance['db']);
     createUser(email: string, role: 'driver' | 'rider'): Promise<User>;
     getUserById(id: number): Promise<User | null>;
+    nearbyRideSearch(searchParams: NearbyRideSearchRequest): Promise<any[]>;
     createRide(rideData: CreateRideRequest, driverId: number): Promise<Ride>;
     searchRides(searchParams: GeoSearchRequest): Promise<Array<{
         ride: Ride;

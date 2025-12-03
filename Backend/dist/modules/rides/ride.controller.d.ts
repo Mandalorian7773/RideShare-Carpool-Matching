@@ -12,6 +12,7 @@ export declare class RideController {
     constructor(fastify: FastifyInstance);
     createRide(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;
     searchRides(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    nearbyRideSearch(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     requestSeat(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;
     approveSeat(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;
     startRide(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;

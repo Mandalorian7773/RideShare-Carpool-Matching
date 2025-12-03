@@ -7,7 +7,8 @@ import {
   Rating, 
   CreateRideRequest, 
   GeoSearchRequest,
-  User
+  User,
+  NearbyRideSearchRequest
 } from './ride.types';
 
 export class RideService {
@@ -23,6 +24,10 @@ export class RideService {
 
   async searchRides(searchParams: GeoSearchRequest): Promise<Array<{ride: Ride, distance: number}>> {
     return this.repository.searchRides(searchParams);
+  }
+
+  async nearbyRideSearch(searchParams: NearbyRideSearchRequest): Promise<any[]> {
+    return this.repository.nearbyRideSearch(searchParams);
   }
 
   async requestSeat(rideId: number, riderId: number): Promise<SeatRequest> {

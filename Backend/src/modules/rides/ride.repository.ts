@@ -7,7 +7,8 @@ import {
   Rating, 
   CreateRideRequest, 
   GeoSearchRequest,
-  User
+  User,
+  NearbyRideSearchRequest
 } from './ride.types';
 
 export class RideRepository {
@@ -27,6 +28,43 @@ export class RideRepository {
     const query = `SELECT * FROM users WHERE id = $1`;
     const result = await this.db.query(query, [id]);
     return result.rows[0] || null;
+  }
+
+  async nearbyRideSearch(searchParams: NearbyRideSearchRequest): Promise<any[]> {
+    const query = `
+      SELECT
+        id,
+        driver_id,
+        ride_time,
+        total_seats,
+        available_seats,
+        status,
+        ST_Distance(
+          pickup_location,
+          ST_MakePoint($1, $2)::geography
+        ) AS distance_meters
+      FROM rides
+      WHERE
+        status = 'open'
+        AND available_seats > 0
+        AND ride_time > NOW()
+        AND ST_DWithin(
+          pickup_location,
+          ST_MakePoint($1, $2)::geography,
+          $3
+        )
+      ORDER BY distance_meters
+      LIMIT 20;
+    `;
+    
+    const values = [
+      searchParams.lng,
+      searchParams.lat,
+      searchParams.radius
+    ];
+    
+    const result = await this.db.query(query, values);
+    return result.rows;
   }
 
   async createRide(rideData: CreateRideRequest, driverId: number): Promise<Ride> {
