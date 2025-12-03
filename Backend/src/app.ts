@@ -24,7 +24,6 @@ const app = fastify({
   }
 });
 
-// Security plugins
 app.register(helmet);
 app.register(cors, {
   origin: process.env.CORS_ORIGIN || '*',
@@ -33,32 +32,26 @@ app.register(cors, {
   credentials: true
 });
 
-// Register database and other plugins
 app.register(dbPlugin);
 app.register(redisPlugin);
 app.register(websocketPlugin);
 app.register(fcmPlugin);
 
-// Register routes
 app.register(rideRoutes, { prefix: '/api' });
 
-// Health check endpoint
 app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
-// Global error handler
 app.setErrorHandler((error, request, reply) => {
   app.log.error(error);
   
-  // Send error response
   reply.status(500).send({
     success: false,
     error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : (error as Error).message
   });
 });
 
-// 404 handler
 app.setNotFoundHandler((request, reply) => {
   reply.status(404).send({
     success: false,
