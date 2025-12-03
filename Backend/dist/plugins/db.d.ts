@@ -1,10 +1,10 @@
+import { FastifyPluginAsync } from 'fastify';
 import { Pool } from 'pg';
-import { FastifyInstance } from 'fastify';
 declare module 'fastify' {
     interface FastifyInstance {
         db: Pool;
     }
 }
-declare const dbPlugin: (fastify: FastifyInstance) => Promise<void>;
+declare const dbPlugin: FastifyPluginAsync;
 export default dbPlugin;
 //# sourceMappingURL=db.d.ts.map

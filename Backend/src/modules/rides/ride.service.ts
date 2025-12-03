@@ -60,4 +60,16 @@ export class RideService {
   async getUserRatings(userId: number): Promise<Rating[]> {
     return this.repository.getUserRatings(userId);
   }
+
+  async getCurrentRides(userId: number): Promise<Ride[]> {
+    return this.repository.getCurrentRides(userId);
+  }
+
+  async getUpcomingRides(userId: number): Promise<Ride[]> {
+    return this.repository.getUpcomingRides(userId);
+  }
+
+  async getPastRides(userId: number): Promise<Ride[]> {
+    return this.repository.getPastRides(userId);
+  }
 }

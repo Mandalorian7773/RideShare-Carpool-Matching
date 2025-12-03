@@ -1,32 +1,32 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const fastify_plugin_1 = __importDefault(require("fastify-plugin"));
 const socket_io_1 = require("socket.io");
-const websocketPlugin = (0, fastify_plugin_1.default)(async (fastify) => {
+const websocketPlugin = async (fastify) => {
     const io = new socket_io_1.Server(fastify.server, {
         cors: {
-            origin: "*",
-            methods: ["GET", "POST"]
+            origin: process.env.CORS_ORIGIN || '*',
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            credentials: true
         }
     });
     fastify.decorate('io', io);
     io.on('connection', (socket) => {
-        console.log('User connected:', socket.id);
+        fastify.log.info(`User connected: ${socket.id}`);
         socket.on('join-ride', (rideId) => {
             socket.join(`ride-${rideId}`);
-            console.log(`User ${socket.id} joined ride ${rideId}`);
+            fastify.log.debug(`User ${socket.id} joined ride ${rideId}`);
         });
         socket.on('leave-ride', (rideId) => {
             socket.leave(`ride-${rideId}`);
-            console.log(`User ${socket.id} left ride ${rideId}`);
+            fastify.log.debug(`User ${socket.id} left ride ${rideId}`);
         });
         socket.on('disconnect', () => {
-            console.log('User disconnected:', socket.id);
+            fastify.log.info(`User disconnected: ${socket.id}`);
         });
     });
-});
+    fastify.addHook('onReady', () => {
+        fastify.log.info('WebSocket server initialized');
+    });
+};
 exports.default = websocketPlugin;
 //# sourceMappingURL=websocket.js.map

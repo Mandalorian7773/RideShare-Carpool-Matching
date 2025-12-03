@@ -22,5 +22,8 @@ export declare class RideRepository {
     getMessages(rideId: number): Promise<Message[]>;
     addRating(rideId: number, reviewerId: number, reviewedUserId: number, rating: number, comment?: string): Promise<Rating>;
     getUserRatings(userId: number): Promise<Rating[]>;
+    getCurrentRides(userId: number): Promise<Ride[]>;
+    getUpcomingRides(userId: number): Promise<Ride[]>;
+    getPastRides(userId: number): Promise<Ride[]>;
 }
 //# sourceMappingURL=ride.repository.d.ts.map

@@ -1,10 +1,10 @@
+import { FastifyPluginAsync } from 'fastify';
 import { Server } from 'socket.io';
-import { FastifyInstance } from 'fastify';
 declare module 'fastify' {
     interface FastifyInstance {
         io: Server;
     }
 }
-declare const websocketPlugin: (fastify: FastifyInstance) => Promise<void>;
+declare const websocketPlugin: FastifyPluginAsync;
 export default websocketPlugin;
 //# sourceMappingURL=websocket.d.ts.map

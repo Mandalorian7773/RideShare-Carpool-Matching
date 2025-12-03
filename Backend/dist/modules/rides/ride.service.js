@@ -39,6 +39,15 @@ class RideService {
     async getUserRatings(userId) {
         return this.repository.getUserRatings(userId);
     }
+    async getCurrentRides(userId) {
+        return this.repository.getCurrentRides(userId);
+    }
+    async getUpcomingRides(userId) {
+        return this.repository.getUpcomingRides(userId);
+    }
+    async getPastRides(userId) {
+        return this.repository.getPastRides(userId);
+    }
 }
 exports.RideService = RideService;
 //# sourceMappingURL=ride.service.js.map

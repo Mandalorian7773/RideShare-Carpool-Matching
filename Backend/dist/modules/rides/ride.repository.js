@@ -546,6 +546,145 @@ class RideRepository {
             createdAt: new Date(row.created_at)
         }));
     }
+    async getCurrentRides(userId) {
+        const query = `
+      SELECT 
+        r.id, r.uuid, r.driver_id,
+        ST_Y(r.pickup_location) as pickup_latitude,
+        ST_X(r.pickup_location) as pickup_longitude,
+        ST_Y(r.destination_location) as destination_latitude,
+        ST_X(r.destination_location) as destination_longitude,
+        r.pickup_address, r.destination_address,
+        r.departure_time, r.available_seats, r.total_seats, r.price_per_seat,
+        r.status, r.created_at, r.updated_at
+      FROM rides r
+      WHERE r.status = 'in_progress'
+        AND (
+          r.driver_id = $1 
+          OR r.id IN (
+            SELECT ride_id FROM seat_requests 
+            WHERE rider_id = $1 AND status = 'approved'
+          )
+        )
+      ORDER BY r.departure_time ASC
+    `;
+        const result = await this.db.query(query, [userId]);
+        return result.rows.map(row => ({
+            id: row.id,
+            uuid: row.uuid,
+            driverId: row.driver_id,
+            pickupLocation: {
+                latitude: parseFloat(row.pickup_latitude),
+                longitude: parseFloat(row.pickup_longitude)
+            },
+            destinationLocation: {
+                latitude: parseFloat(row.destination_latitude),
+                longitude: parseFloat(row.destination_longitude)
+            },
+            pickupAddress: row.pickup_address,
+            destinationAddress: row.destination_address,
+            departureTime: new Date(row.departure_time),
+            availableSeats: row.available_seats,
+            totalSeats: row.total_seats,
+            pricePerSeat: row.price_per_seat,
+            status: row.status,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at)
+        }));
+    }
+    async getUpcomingRides(userId) {
+        const query = `
+      SELECT 
+        r.id, r.uuid, r.driver_id,
+        ST_Y(r.pickup_location) as pickup_latitude,
+        ST_X(r.pickup_location) as pickup_longitude,
+        ST_Y(r.destination_location) as destination_latitude,
+        ST_X(r.destination_location) as destination_longitude,
+        r.pickup_address, r.destination_address,
+        r.departure_time, r.available_seats, r.total_seats, r.price_per_seat,
+        r.status, r.created_at, r.updated_at
+      FROM rides r
+      WHERE r.status IN ('open', 'approved', 'full')
+        AND r.departure_time > NOW()
+        AND (
+          r.driver_id = $1 
+          OR r.id IN (
+            SELECT ride_id FROM seat_requests 
+            WHERE rider_id = $1 AND status = 'approved'
+          )
+        )
+      ORDER BY r.departure_time ASC
+    `;
+        const result = await this.db.query(query, [userId]);
+        return result.rows.map(row => ({
+            id: row.id,
+            uuid: row.uuid,
+            driverId: row.driver_id,
+            pickupLocation: {
+                latitude: parseFloat(row.pickup_latitude),
+                longitude: parseFloat(row.pickup_longitude)
+            },
+            destinationLocation: {
+                latitude: parseFloat(row.destination_latitude),
+                longitude: parseFloat(row.destination_longitude)
+            },
+            pickupAddress: row.pickup_address,
+            destinationAddress: row.destination_address,
+            departureTime: new Date(row.departure_time),
+            availableSeats: row.available_seats,
+            totalSeats: row.total_seats,
+            pricePerSeat: row.price_per_seat,
+            status: row.status,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at)
+        }));
+    }
+    async getPastRides(userId) {
+        const query = `
+      SELECT 
+        r.id, r.uuid, r.driver_id,
+        ST_Y(r.pickup_location) as pickup_latitude,
+        ST_X(r.pickup_location) as pickup_longitude,
+        ST_Y(r.destination_location) as destination_latitude,
+        ST_X(r.destination_location) as destination_longitude,
+        r.pickup_address, r.destination_address,
+        r.departure_time, r.available_seats, r.total_seats, r.price_per_seat,
+        r.status, r.created_at, r.updated_at
+      FROM rides r
+      WHERE r.status IN ('completed', 'cancelled')
+        AND (
+          r.driver_id = $1 
+          OR r.id IN (
+            SELECT ride_id FROM seat_requests 
+            WHERE rider_id = $1 AND status = 'approved'
+          )
+        )
+      ORDER BY r.departure_time DESC
+    `;
+        const result = await this.db.query(query, [userId]);
+        return result.rows.map(row => ({
+            id: row.id,
+            uuid: row.uuid,
+            driverId: row.driver_id,
+            pickupLocation: {
+                latitude: parseFloat(row.pickup_latitude),
+                longitude: parseFloat(row.pickup_longitude)
+            },
+            destinationLocation: {
+                latitude: parseFloat(row.destination_latitude),
+                longitude: parseFloat(row.destination_longitude)
+            },
+            pickupAddress: row.pickup_address,
+            destinationAddress: row.destination_address,
+            departureTime: new Date(row.departure_time),
+            availableSeats: row.available_seats,
+            totalSeats: row.total_seats,
+            pricePerSeat: row.price_per_seat,
+            status: row.status,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at)
+        }));
+    }
 }
 exports.RideRepository = RideRepository;
 //# sourceMappingURL=ride.repository.js.map

@@ -327,4 +327,73 @@ export class RideController {
       });
     }
   }
+
+  async getCurrentRides(request: FastifyRequestWithUser, reply: FastifyReply) {
+    try {
+      if (!request.user) {
+        return reply.status(401).send({
+          success: false,
+          error: 'Unauthorized'
+        });
+      }
+
+      const userId = request.user.id;
+      const rides = await this.service.getCurrentRides(userId);
+      return reply.status(200).send({
+        success: true,
+        data: rides
+      });
+    } catch (error: any) {
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to get current rides'
+      });
+    }
+  }
+
+  async getUpcomingRides(request: FastifyRequestWithUser, reply: FastifyReply) {
+    try {
+      if (!request.user) {
+        return reply.status(401).send({
+          success: false,
+          error: 'Unauthorized'
+        });
+      }
+
+      const userId = request.user.id;
+      const rides = await this.service.getUpcomingRides(userId);
+      return reply.status(200).send({
+        success: true,
+        data: rides
+      });
+    } catch (error: any) {
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to get upcoming rides'
+      });
+    }
+  }
+
+  async getPastRides(request: FastifyRequestWithUser, reply: FastifyReply) {
+    try {
+      if (!request.user) {
+        return reply.status(401).send({
+          success: false,
+          error: 'Unauthorized'
+        });
+      }
+
+      const userId = request.user.id;
+      const rides = await this.service.getPastRides(userId);
+      return reply.status(200).send({
+        success: true,
+        data: rides
+      });
+    } catch (error: any) {
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to get past rides'
+      });
+    }
+  }
 }

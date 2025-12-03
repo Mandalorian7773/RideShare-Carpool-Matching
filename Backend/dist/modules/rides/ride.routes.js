@@ -11,6 +11,9 @@ async function rideRoutes(fastify) {
     fastify.post('/rides/start', controller.startRide.bind(controller));
     fastify.post('/rides/end', controller.endRide.bind(controller));
     fastify.post('/rides/cancel', controller.cancelRide.bind(controller));
+    fastify.get('/rides/current', controller.getCurrentRides.bind(controller));
+    fastify.get('/rides/upcoming', controller.getUpcomingRides.bind(controller));
+    fastify.get('/rides/past', controller.getPastRides.bind(controller));
     fastify.post('/chat/send', controller.sendMessage.bind(controller));
     fastify.get('/chat/:rideId', controller.getMessages.bind(controller));
     fastify.post('/ratings/add', controller.addRating.bind(controller));

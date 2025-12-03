@@ -1,5 +1,7 @@
 import fastify from 'fastify';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
+import helmet from '@fastify/helmet';
+import cors from '@fastify/cors';
 import { rideRoutes } from './modules/rides/ride.routes';
 import dbPlugin from './plugins/db';
 import redisPlugin from './plugins/redis';
@@ -9,25 +11,54 @@ import fcmPlugin from './plugins/fcm';
 dotenv.config();
 
 const app = fastify({ 
-  logger: true 
+  logger: {
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    transport: process.env.NODE_ENV === 'production' ? undefined : {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'SYS:standard',
+        ignore: 'pid,hostname'
+      }
+    }
+  }
 });
 
+// Security plugins
+app.register(helmet);
+app.register(cors, {
+  origin: process.env.CORS_ORIGIN || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+});
+
+// Register database and other plugins
 app.register(dbPlugin);
 app.register(redisPlugin);
 app.register(websocketPlugin);
 app.register(fcmPlugin);
 
+// Register routes
 app.register(rideRoutes, { prefix: '/api' });
 
+// Health check endpoint
+app.get('/health', async () => {
+  return { status: 'ok', timestamp: new Date().toISOString() };
+});
+
+// Global error handler
 app.setErrorHandler((error, request, reply) => {
   app.log.error(error);
   
+  // Send error response
   reply.status(500).send({
     success: false,
-    error: 'Internal Server Error'
+    error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : (error as Error).message
   });
 });
 
+// 404 handler
 app.setNotFoundHandler((request, reply) => {
   reply.status(404).send({
     success: false,
@@ -38,10 +69,14 @@ app.setNotFoundHandler((request, reply) => {
 const start = async () => {
   try {
     const port = parseInt(process.env.PORT || '3000');
-    await app.listen({ port, host: '0.0.0.0' });
-    console.log(`Server listening on port ${port}`);
+    const host = process.env.HOST || '0.0.0.0';
+    
+    await app.listen({ port, host });
+    
+    app.log.info(`Server listening on ${host}:${port}`);
+    app.log.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   } catch (err) {
-    console.error(err);
+    app.log.error(err);
     process.exit(1);
   }
 };

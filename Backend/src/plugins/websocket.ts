@@ -1,6 +1,5 @@
-import fp from 'fastify-plugin';
+import { FastifyPluginAsync } from 'fastify';
 import { Server } from 'socket.io';
-import { FastifyInstance } from 'fastify';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -8,33 +7,39 @@ declare module 'fastify' {
   }
 }
 
-const websocketPlugin = fp(async (fastify: FastifyInstance) => {
+const websocketPlugin: FastifyPluginAsync = async (fastify) => {
   const io = new Server(fastify.server, {
     cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
+      origin: process.env.CORS_ORIGIN || '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true
     }
   });
 
   fastify.decorate('io', io);
 
   io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    fastify.log.info(`User connected: ${socket.id}`);
 
     socket.on('join-ride', (rideId) => {
       socket.join(`ride-${rideId}`);
-      console.log(`User ${socket.id} joined ride ${rideId}`);
+      fastify.log.debug(`User ${socket.id} joined ride ${rideId}`);
     });
 
     socket.on('leave-ride', (rideId) => {
       socket.leave(`ride-${rideId}`);
-      console.log(`User ${socket.id} left ride ${rideId}`);
+      fastify.log.debug(`User ${socket.id} left ride ${rideId}`);
     });
 
     socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
+      fastify.log.info(`User disconnected: ${socket.id}`);
     });
   });
-});
+
+  // Log when the server starts listening
+  fastify.addHook('onReady', () => {
+    fastify.log.info('WebSocket server initialized');
+  });
+};
 
 export default websocketPlugin;

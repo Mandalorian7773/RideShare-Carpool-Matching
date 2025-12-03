@@ -21,6 +21,9 @@ export declare class RideController {
     getMessages(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     addRating(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;
     getUserRatings(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getCurrentRides(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;
+    getUpcomingRides(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;
+    getPastRides(request: FastifyRequestWithUser, reply: FastifyReply): Promise<never>;
 }
 export {};
 //# sourceMappingURL=ride.controller.d.ts.map
