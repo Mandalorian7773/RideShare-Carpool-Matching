@@ -105,11 +105,6 @@ class RideController {
             }
             const userId = request.user.id;
             const result = await this.service.approveSeat(request.body.seatRequestId);
-            request.server.io.to(`ride-${result.ride.id}`).emit('seat-approved', {
-                rideId: result.ride.id,
-                seatRequestId: result.seatRequest.id
-            });
-            console.log(`Sending push notification for approved seat request ${result.seatRequest.id}`);
             return reply.status(200).send({
                 success: true,
                 data: result
@@ -132,9 +127,6 @@ class RideController {
             }
             const userId = request.user.id;
             const ride = await this.service.startRide(request.body.rideId, userId);
-            request.server.io.to(`ride-${ride.id}`).emit('ride-started', {
-                rideId: ride.id
-            });
             return reply.status(200).send({
                 success: true,
                 data: ride
@@ -157,9 +149,6 @@ class RideController {
             }
             const userId = request.user.id;
             const ride = await this.service.endRide(request.body.rideId, userId);
-            request.server.io.to(`ride-${ride.id}`).emit('ride-ended', {
-                rideId: ride.id
-            });
             return reply.status(200).send({
                 success: true,
                 data: ride
@@ -182,10 +171,6 @@ class RideController {
             }
             const userId = request.user.id;
             const ride = await this.service.cancelRide(request.body.rideId, userId);
-            request.server.io.to(`ride-${ride.id}`).emit('ride-cancelled', {
-                rideId: ride.id
-            });
-            console.log(`Sending push notification for cancelled ride ${ride.id}`);
             return reply.status(200).send({
                 success: true,
                 data: ride
@@ -209,13 +194,6 @@ class RideController {
             const userId = request.user.id;
             const body = request.body;
             const message = await this.service.sendMessage(body.rideId, userId, body.content);
-            request.server.io.to(`ride-${body.rideId}`).emit('chat-message', {
-                messageId: message.id,
-                rideId: message.rideId,
-                senderId: message.senderId,
-                content: message.content,
-                createdAt: message.createdAt
-            });
             return reply.status(201).send({
                 success: true,
                 data: message

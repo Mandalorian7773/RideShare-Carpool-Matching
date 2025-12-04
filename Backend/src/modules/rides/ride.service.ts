@@ -10,12 +10,26 @@ import {
   User,
   NearbyRideSearchRequest
 } from './ride.types';
+import { dbService } from '../../services/database.service';
 
 export class RideService {
   private repository: RideRepository;
 
   constructor(fastify: FastifyInstance) {
-    this.repository = new RideRepository(fastify.db);
+    const mockDb = {
+      query: async (query: string, values?: any[]) => {
+        const client = await dbService.getClient();
+        try {
+          return await client.query(query, values);
+        } finally {
+          client.release();
+        }
+      },
+      connect: async () => {
+        return await dbService.getClient();
+      }
+    };
+    this.repository = new RideRepository(mockDb as any);
   }
 
   async createRide(rideData: CreateRideRequest, driverId: number): Promise<Ride> {

@@ -6,8 +6,8 @@ const dbPlugin = async (fastify) => {
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '5432'),
         database: process.env.DB_NAME || 'rideshare',
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
+        user: process.env.DB_USER || 'rideshare_user',
+        password: process.env.DB_PASSWORD || 'password123',
         ssl: process.env.DB_SSL === 'true',
         maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '20'),
         connectionTimeout: parseInt(process.env.DB_CONNECTION_TIMEOUT || '2000'),
@@ -34,6 +34,15 @@ const dbPlugin = async (fastify) => {
         throw err;
     }
     fastify.decorate('db', pool);
+    fastify.log.info('Database plugin decorated successfully');
+    fastify.addHook('onRequest', async (request, reply) => {
+        if (fastify.hasDecorator('db')) {
+            fastify.log.debug('Database decorator is available');
+        }
+        else {
+            fastify.log.warn('Database decorator is NOT available');
+        }
+    });
     fastify.addHook('onClose', async () => {
         await pool.end();
         fastify.log.info('Database connection pool closed');

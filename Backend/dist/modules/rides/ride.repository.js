@@ -24,25 +24,30 @@ class RideRepository {
       SELECT
         id,
         driver_id,
-        ride_time,
+        departure_time,
         total_seats,
         available_seats,
         status,
-        ST_Distance(
-          pickup_location,
-          ST_MakePoint($1, $2)::geography
-        ) AS distance_meters
+        (6371 * acos(
+          cos(radians($2)) * 
+          cos(radians(pickup_latitude)) * 
+          cos(radians(pickup_longitude) - radians($1)) + 
+          sin(radians($2)) * 
+          sin(radians(pickup_latitude))
+        )) AS distance_km
       FROM rides
       WHERE
         status = 'open'
         AND available_seats > 0
-        AND ride_time > NOW()
-        AND ST_DWithin(
-          pickup_location,
-          ST_MakePoint($1, $2)::geography,
-          $3
-        )
-      ORDER BY distance_meters
+        AND departure_time > NOW()
+        AND (6371 * acos(
+          cos(radians($2)) * 
+          cos(radians(pickup_latitude)) * 
+          cos(radians(pickup_longitude) - radians($1)) + 
+          sin(radians($2)) * 
+          sin(radians(pickup_latitude))
+        )) <= $3
+      ORDER BY distance_km
       LIMIT 20;
     `;
         const values = [
@@ -57,8 +62,10 @@ class RideRepository {
         const query = `
       INSERT INTO rides (
         driver_id,
-        pickup_location,
-        destination_location,
+        pickup_latitude,
+        pickup_longitude,
+        destination_latitude,
+        destination_longitude,
         pickup_address,
         destination_address,
         departure_time,
@@ -68,34 +75,37 @@ class RideRepository {
       )
       VALUES (
         $1,
-        ST_SetSRID(ST_MakePoint($2, $3), 4326),
-        ST_SetSRID(ST_MakePoint($4, $5), 4326),
+        $2,
+        $3,
+        $4,
+        $5,
         $6,
         $7,
         $8,
         $9,
-        $9,
-        $10
+        $10,
+        $11
       )
       RETURNING 
         id, uuid, driver_id, 
-        ST_Y(pickup_location) as pickup_latitude,
-        ST_X(pickup_location) as pickup_longitude,
-        ST_Y(destination_location) as destination_latitude,
-        ST_X(destination_location) as destination_longitude,
+        pickup_latitude,
+        pickup_longitude,
+        destination_latitude,
+        destination_longitude,
         pickup_address, destination_address,
         departure_time, available_seats, total_seats, price_per_seat,
         status, created_at, updated_at
     `;
         const values = [
             driverId,
-            rideData.pickupLongitude,
             rideData.pickupLatitude,
-            rideData.destinationLongitude,
+            rideData.pickupLongitude,
             rideData.destinationLatitude,
+            rideData.destinationLongitude,
             rideData.pickupAddress,
             rideData.destinationAddress,
             rideData.departureTime,
+            rideData.totalSeats,
             rideData.totalSeats,
             rideData.pricePerSeat
         ];
@@ -128,29 +138,34 @@ class RideRepository {
         const query = `
       SELECT 
         r.id, r.uuid, r.driver_id,
-        ST_Y(r.pickup_location) as pickup_latitude,
-        ST_X(r.pickup_location) as pickup_longitude,
-        ST_Y(r.destination_location) as destination_latitude,
-        ST_X(r.destination_location) as destination_longitude,
+        r.pickup_latitude,
+        r.pickup_longitude,
+        r.destination_latitude,
+        r.destination_longitude,
         r.pickup_address, r.destination_address,
         r.departure_time, r.available_seats, r.total_seats, r.price_per_seat,
         r.status, r.created_at, r.updated_at,
-        ST_Distance(
-          r.pickup_location::geography,
-          ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
-        ) / 1000 as distance_meters
+        (6371 * acos(
+          cos(radians($2)) * 
+          cos(radians(r.pickup_latitude)) * 
+          cos(radians(r.pickup_longitude) - radians($1)) + 
+          sin(radians($2)) * 
+          sin(radians(r.pickup_latitude))
+        )) AS distance_km
       FROM rides r
       WHERE 
         r.status = 'open'
         AND r.available_seats > 0
         AND r.departure_time >= NOW()
         AND r.departure_time <= NOW() + INTERVAL '${searchParams.timeWindow} minutes'
-        AND ST_DWithin(
-          r.pickup_location::geography,
-          ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
-          $3 * 1000
-        )
-      ORDER BY distance_meters ASC
+        AND (6371 * acos(
+          cos(radians($2)) * 
+          cos(radians(r.pickup_latitude)) * 
+          cos(radians(r.pickup_longitude) - radians($1)) + 
+          sin(radians($2)) * 
+          sin(radians(r.pickup_latitude))
+        )) <= $3
+      ORDER BY distance_km ASC
       LIMIT 20
     `;
         const values = [
@@ -182,7 +197,7 @@ class RideRepository {
                 createdAt: new Date(row.created_at),
                 updatedAt: new Date(row.updated_at)
             },
-            distance: parseFloat(row.distance_meters)
+            distance: parseFloat(row.distance_km)
         }));
     }
     async requestSeat(rideId, riderId) {
@@ -277,10 +292,10 @@ class RideRepository {
         WHERE id = $1
         RETURNING 
           id, uuid, driver_id,
-          ST_Y(pickup_location) as pickup_latitude,
-          ST_X(pickup_location) as pickup_longitude,
-          ST_Y(destination_location) as destination_latitude,
-          ST_X(destination_location) as destination_longitude,
+          pickup_latitude,
+          pickup_longitude,
+          destination_latitude,
+          destination_longitude,
           pickup_address, destination_address,
           departure_time, available_seats, total_seats, price_per_seat,
           status, created_at, updated_at
@@ -338,10 +353,10 @@ class RideRepository {
       WHERE id = $1 AND driver_id = $2
       RETURNING 
         id, uuid, driver_id,
-        ST_Y(pickup_location) as pickup_latitude,
-        ST_X(pickup_location) as pickup_longitude,
-        ST_Y(destination_location) as destination_latitude,
-        ST_X(destination_location) as destination_longitude,
+        pickup_latitude,
+        pickup_longitude,
+        destination_latitude,
+        destination_longitude,
         pickup_address, destination_address,
         departure_time, available_seats, total_seats, price_per_seat,
         status, created_at, updated_at
@@ -381,10 +396,10 @@ class RideRepository {
       WHERE id = $1 AND driver_id = $2
       RETURNING 
         id, uuid, driver_id,
-        ST_Y(pickup_location) as pickup_latitude,
-        ST_X(pickup_location) as pickup_longitude,
-        ST_Y(destination_location) as destination_latitude,
-        ST_X(destination_location) as destination_longitude,
+        pickup_latitude,
+        pickup_longitude,
+        destination_latitude,
+        destination_longitude,
         pickup_address, destination_address,
         departure_time, available_seats, total_seats, price_per_seat,
         status, created_at, updated_at
@@ -426,10 +441,10 @@ class RideRepository {
       ))
       RETURNING 
         id, uuid, driver_id,
-        ST_Y(pickup_location) as pickup_latitude,
-        ST_X(pickup_location) as pickup_longitude,
-        ST_Y(destination_location) as destination_latitude,
-        ST_X(destination_location) as destination_longitude,
+        pickup_latitude,
+        pickup_longitude,
+        destination_latitude,
+        destination_longitude,
         pickup_address, destination_address,
         departure_time, available_seats, total_seats, price_per_seat,
         status, created_at, updated_at
@@ -584,10 +599,10 @@ class RideRepository {
         const query = `
       SELECT 
         r.id, r.uuid, r.driver_id,
-        ST_Y(r.pickup_location) as pickup_latitude,
-        ST_X(r.pickup_location) as pickup_longitude,
-        ST_Y(r.destination_location) as destination_latitude,
-        ST_X(r.destination_location) as destination_longitude,
+        r.pickup_latitude,
+        r.pickup_longitude,
+        r.destination_latitude,
+        r.destination_longitude,
         r.pickup_address, r.destination_address,
         r.departure_time, r.available_seats, r.total_seats, r.price_per_seat,
         r.status, r.created_at, r.updated_at
@@ -630,15 +645,15 @@ class RideRepository {
         const query = `
       SELECT 
         r.id, r.uuid, r.driver_id,
-        ST_Y(r.pickup_location) as pickup_latitude,
-        ST_X(r.pickup_location) as pickup_longitude,
-        ST_Y(r.destination_location) as destination_latitude,
-        ST_X(r.destination_location) as destination_longitude,
+        r.pickup_latitude,
+        r.pickup_longitude,
+        r.destination_latitude,
+        r.destination_longitude,
         r.pickup_address, r.destination_address,
         r.departure_time, r.available_seats, r.total_seats, r.price_per_seat,
         r.status, r.created_at, r.updated_at
       FROM rides r
-      WHERE r.status IN ('open', 'approved', 'full')
+      WHERE r.status IN ('open', 'full')
         AND r.departure_time > NOW()
         AND (
           r.driver_id = $1 
@@ -677,10 +692,10 @@ class RideRepository {
         const query = `
       SELECT 
         r.id, r.uuid, r.driver_id,
-        ST_Y(r.pickup_location) as pickup_latitude,
-        ST_X(r.pickup_location) as pickup_longitude,
-        ST_Y(r.destination_location) as destination_latitude,
-        ST_X(r.destination_location) as destination_longitude,
+        r.pickup_latitude,
+        r.pickup_longitude,
+        r.destination_latitude,
+        r.destination_longitude,
         r.pickup_address, r.destination_address,
         r.departure_time, r.available_seats, r.total_seats, r.price_per_seat,
         r.status, r.created_at, r.updated_at

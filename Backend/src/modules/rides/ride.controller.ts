@@ -135,13 +135,6 @@ export class RideController {
       
       const result = await this.service.approveSeat((request.body as ApproveSeatRequest).seatRequestId);
       
-      (request.server as any).io.to(`ride-${result.ride.id}`).emit('seat-approved', {
-        rideId: result.ride.id,
-        seatRequestId: result.seatRequest.id
-      });
-      
-      console.log(`Sending push notification for approved seat request ${result.seatRequest.id}`);
-      
       return reply.status(200).send({
         success: true,
         data: result
@@ -166,10 +159,6 @@ export class RideController {
       const userId = request.user.id;
       
       const ride = await this.service.startRide((request.body as { rideId: number }).rideId, userId);
-      
-      (request.server as any).io.to(`ride-${ride.id}`).emit('ride-started', {
-        rideId: ride.id
-      });
       
       return reply.status(200).send({
         success: true,
@@ -196,10 +185,6 @@ export class RideController {
       
       const ride = await this.service.endRide((request.body as { rideId: number }).rideId, userId);
       
-      (request.server as any).io.to(`ride-${ride.id}`).emit('ride-ended', {
-        rideId: ride.id
-      });
-      
       return reply.status(200).send({
         success: true,
         data: ride
@@ -224,12 +209,6 @@ export class RideController {
       const userId = request.user.id;
       
       const ride = await this.service.cancelRide((request.body as { rideId: number }).rideId, userId);
-      
-      (request.server as any).io.to(`ride-${ride.id}`).emit('ride-cancelled', {
-        rideId: ride.id
-      });
-      
-      console.log(`Sending push notification for cancelled ride ${ride.id}`);
       
       return reply.status(200).send({
         success: true,
@@ -260,14 +239,6 @@ export class RideController {
         userId,
         body.content
       );
-      
-      (request.server as any).io.to(`ride-${body.rideId}`).emit('chat-message', {
-        messageId: message.id,
-        rideId: message.rideId,
-        senderId: message.senderId,
-        content: message.content,
-        createdAt: message.createdAt
-      });
       
       return reply.status(201).send({
         success: true,

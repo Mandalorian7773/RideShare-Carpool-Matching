@@ -2,9 +2,24 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RideService = void 0;
 const ride_repository_1 = require("./ride.repository");
+const database_service_1 = require("../../services/database.service");
 class RideService {
     constructor(fastify) {
-        this.repository = new ride_repository_1.RideRepository(fastify.db);
+        const mockDb = {
+            query: async (query, values) => {
+                const client = await database_service_1.dbService.getClient();
+                try {
+                    return await client.query(query, values);
+                }
+                finally {
+                    client.release();
+                }
+            },
+            connect: async () => {
+                return await database_service_1.dbService.getClient();
+            }
+        };
+        this.repository = new ride_repository_1.RideRepository(mockDb);
     }
     async createRide(rideData, driverId) {
         return this.repository.createRide(rideData, driverId);

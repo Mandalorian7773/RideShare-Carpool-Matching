@@ -41,10 +41,11 @@ const dotenv = __importStar(require("dotenv"));
 const helmet_1 = __importDefault(require("@fastify/helmet"));
 const cors_1 = __importDefault(require("@fastify/cors"));
 const ride_routes_1 = require("./modules/rides/ride.routes");
-const db_1 = __importDefault(require("./plugins/db"));
-const redis_1 = __importDefault(require("./plugins/redis"));
 const websocket_1 = __importDefault(require("./plugins/websocket"));
 const fcm_1 = __importDefault(require("./plugins/fcm"));
+const jwt_1 = __importDefault(require("./plugins/jwt"));
+const database_service_1 = require("./services/database.service");
+const jwt = __importStar(require("jsonwebtoken"));
 dotenv.config();
 const app = (0, fastify_1.default)({
     logger: {
@@ -66,16 +67,66 @@ app.register(cors_1.default, {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 });
-app.register(db_1.default);
-app.register(redis_1.default);
+app.addHook('onReady', async () => {
+    try {
+        await database_service_1.dbService.initialize();
+        app.log.info('Database service initialized successfully');
+    }
+    catch (err) {
+        app.log.error({ err }, 'Failed to initialize database service');
+        throw err;
+    }
+});
+const secret = process.env.JWT_SECRET || 'my_jwt_secret_key';
+app.decorate('authenticate', async (request, reply) => {
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+        return reply.status(401).send({
+            success: false,
+            error: 'Missing authorization header'
+        });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    try {
+        const decoded = jwt.verify(token, secret);
+        request.user = decoded;
+    }
+    catch (err) {
+        return reply.status(401).send({
+            success: false,
+            error: 'Invalid or expired token'
+        });
+    }
+});
+app.register(jwt_1.default);
 app.register(websocket_1.default);
 app.register(fcm_1.default);
 app.register(ride_routes_1.rideRoutes, { prefix: '/api' });
+const start = async () => {
+    try {
+        const port = parseInt(process.env.PORT || '3000');
+        const host = process.env.HOST || '0.0.0.0';
+        await app.listen({ port, host });
+        app.log.info(`Server listening on ${host}:${port}`);
+        app.log.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    }
+    catch (err) {
+        app.log.error({ err }, 'Server startup error');
+        process.exit(1);
+    }
+};
+app.ready((err) => {
+    if (err) {
+        app.log.error({ err }, 'Failed to start server');
+        process.exit(1);
+    }
+    start();
+});
 app.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
 });
 app.setErrorHandler((error, request, reply) => {
-    app.log.error(error);
+    app.log.error({ err: error }, 'Unhandled server error');
     reply.status(500).send({
         success: false,
         error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : error.message
@@ -87,19 +138,5 @@ app.setNotFoundHandler((request, reply) => {
         error: 'Route not found'
     });
 });
-const start = async () => {
-    try {
-        const port = parseInt(process.env.PORT || '3000');
-        const host = process.env.HOST || '0.0.0.0';
-        await app.listen({ port, host });
-        app.log.info(`Server listening on ${host}:${port}`);
-        app.log.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    }
-    catch (err) {
-        app.log.error(err);
-        process.exit(1);
-    }
-};
-start();
 exports.default = app;
 //# sourceMappingURL=app.js.map
