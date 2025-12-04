@@ -195,7 +195,7 @@ export class RideRepository {
     
     const result = await this.db.query(query, values);
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       ride: {
         id: row.id,
         uuid: row.uuid,
@@ -558,7 +558,7 @@ export class RideRepository {
     
     const result = await this.db.query(query, [rideId]);
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       uuid: row.uuid,
       rideId: row.ride_id,
@@ -653,7 +653,7 @@ export class RideRepository {
     
     const result = await this.db.query(query, [userId]);
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       uuid: row.uuid,
       rideId: row.ride_id,
@@ -690,7 +690,7 @@ export class RideRepository {
     
     const result = await this.db.query(query, [userId]);
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       uuid: row.uuid,
       driverId: row.driver_id,
@@ -740,7 +740,7 @@ export class RideRepository {
     
     const result = await this.db.query(query, [userId]);
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       uuid: row.uuid,
       driverId: row.driver_id,
@@ -789,7 +789,7 @@ export class RideRepository {
     
     const result = await this.db.query(query, [userId]);
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       uuid: row.uuid,
       driverId: row.driver_id,

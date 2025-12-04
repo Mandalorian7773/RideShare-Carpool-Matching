@@ -174,7 +174,7 @@ class RideRepository {
             searchParams.radius
         ];
         const result = await this.db.query(query, values);
-        return result.rows.map(row => ({
+        return result.rows.map((row) => ({
             ride: {
                 id: row.id,
                 uuid: row.uuid,
@@ -501,7 +501,7 @@ class RideRepository {
       ORDER BY created_at ASC
     `;
         const result = await this.db.query(query, [rideId]);
-        return result.rows.map(row => ({
+        return result.rows.map((row) => ({
             id: row.id,
             uuid: row.uuid,
             rideId: row.ride_id,
@@ -584,7 +584,7 @@ class RideRepository {
       ORDER BY created_at DESC
     `;
         const result = await this.db.query(query, [userId]);
-        return result.rows.map(row => ({
+        return result.rows.map((row) => ({
             id: row.id,
             uuid: row.uuid,
             rideId: row.ride_id,
@@ -618,7 +618,7 @@ class RideRepository {
       ORDER BY r.departure_time ASC
     `;
         const result = await this.db.query(query, [userId]);
-        return result.rows.map(row => ({
+        return result.rows.map((row) => ({
             id: row.id,
             uuid: row.uuid,
             driverId: row.driver_id,
@@ -665,7 +665,7 @@ class RideRepository {
       ORDER BY r.departure_time ASC
     `;
         const result = await this.db.query(query, [userId]);
-        return result.rows.map(row => ({
+        return result.rows.map((row) => ({
             id: row.id,
             uuid: row.uuid,
             driverId: row.driver_id,
@@ -711,7 +711,7 @@ class RideRepository {
       ORDER BY r.departure_time DESC
     `;
         const result = await this.db.query(query, [userId]);
-        return result.rows.map(row => ({
+        return result.rows.map((row) => ({
             id: row.id,
             uuid: row.uuid,
             driverId: row.driver_id,
